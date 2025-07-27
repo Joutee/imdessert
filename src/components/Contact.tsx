@@ -175,14 +175,14 @@ const Contact: React.FC = () => {
                       <div className="contact-icon">📧</div>
                       <div>
                         <h5>Email</h5>
-                        <p>info@imdessert.cz</p>
+                        <p>imdessert@seznam.cz</p>
                       </div>
                     </div>
                     <div className="contact-item">
                       <div className="contact-icon">📱</div>
                       <div>
                         <h5>Telefon</h5>
-                        <p>+420 XXX XXX XXX</p>
+                        <p>+420 607 847 801</p>
                       </div>
                     </div>
                     <div className="contact-item">
