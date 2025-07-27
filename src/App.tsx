@@ -94,8 +94,8 @@ function App() {
             </div>
             <div className="footer-contact">
               <h6>Kontakt</h6>
-              <p>📧 info@imdessert.cz</p>
-              <p>📱 +420 XXX XXX XXX</p>
+              <p>📧 imdessert@seznam.cz</p>
+              <p>📱 +420 607 847 801</p>
               <a
                 href="https://www.facebook.com/imdesssert"
                 target="_blank"
