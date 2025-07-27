@@ -1,0 +1,274 @@
+/* About Hero Section */
+.about-hero {
+  position: relative;
+  height: 60vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.about-hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.about-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.about-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(84, 51, 41, 0.8),
+    rgba(226, 52, 138, 0.7)
+  );
+}
+
+.about-hero-content {
+  position: relative;
+  z-index: 2;
+  color: white;
+}
+
+.about-hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  color: white !important;
+  background: none !important;
+  -webkit-text-fill-color: white !important;
+}
+
+.about-hero-subtitle {
+  font-size: 1.3rem;
+  margin-bottom: 0;
+  opacity: 0.95;
+  line-height: 1.8;
+  color: #fdf8f5 !important;
+}
+
+/* Story Section */
+.about-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+}
+
+.brand-highlight {
+  color: var(--primary-pink);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-pink), var(--dark-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.about-image-wrapper {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  transition: transform 0.4s ease;
+}
+
+.about-image-wrapper:hover {
+  transform: translateY(-5px);
+}
+
+.about-story-image,
+.about-philosophy-image {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.about-image-wrapper:hover .about-story-image,
+.about-image-wrapper:hover .about-philosophy-image {
+  transform: scale(1.05);
+}
+
+/* Philosophy Features */
+.philosophy-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.philosophy-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.philosophy-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(226, 52, 138, 0.2);
+}
+
+.philosophy-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+}
+
+.philosophy-item span:last-child {
+  color: var(--primary-brown);
+  font-weight: 600;
+}
+
+/* Team Cards */
+.team-card {
+  height: 100%;
+  transition: all 0.4s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.team-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  height: 250px;
+}
+
+.team-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.team-card:hover .team-image {
+  transform: scale(1.1);
+}
+
+.team-name {
+  color: var(--primary-brown);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.team-role {
+  color: var(--primary-pink);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
+}
+
+.team-description {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* CTA Buttons */
+.cta-buttons {
+  margin-top: 2rem;
+}
+
+.cta-buttons button {
+  display: inline-block;
+  margin: 0 10px 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .about-hero-title {
+    font-size: 2.5rem;
+  }
+
+  .about-hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .philosophy-features {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .team-image-wrapper {
+    height: 200px;
+  }
+
+  .cta-buttons button {
+    display: block;
+    width: 100%;
+    margin: 0 0 15px 0;
+  }
+
+  .about-story-image,
+  .about-philosophy-image {
+    height: 300px;
+  }
+}
+
+@media (max-width: 576px) {
+  .about-hero {
+    height: 50vh;
+  }
+
+  .about-hero-title {
+    font-size: 2rem;
+  }
+
+  .about-text {
+    font-size: 1rem;
+  }
+
+  .philosophy-item {
+    padding: 0.75rem;
+  }
+
+  .philosophy-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+  }
+}
+
+/* Story Image */
+.story-image-wrapper {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  height: 300px;
+  transition: transform 0.4s ease;
+}
+
+.story-image-wrapper:hover {
+  transform: translateY(-5px);
+}
+
+.story-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.story-image-wrapper:hover .story-image {
+  transform: scale(1.05);
+}

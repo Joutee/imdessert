@@ -1,0 +1,364 @@
+/* Hero Section Styles */
+.hero-section {
+  position: relative;
+  height: 70vh;
+  min-height: 500px;
+  max-height: 700px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.hero-banner {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(84, 51, 41, 0.4),
+    rgba(226, 52, 138, 0.2),
+    rgba(255, 255, 255, 0.1)
+  );
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  color: white;
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  text-shadow: 2px 2px 12px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5);
+  color: white !important;
+  background: none !important;
+  -webkit-text-fill-color: white !important;
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+  opacity: 0.95;
+  line-height: 1.8;
+  color: #fdf8f5 !important;
+  text-shadow: 1px 1px 8px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 0, 0, 0.6);
+  font-weight: 400;
+}
+
+.hero-buttons {
+  margin-top: 2rem;
+}
+
+.hero-buttons .btn {
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 30px;
+  margin: 0 10px 10px 0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  text-shadow: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.hero-buttons .btn-primary-custom {
+  background: linear-gradient(135deg, #e2348a, #c02366);
+  border: none;
+  color: white;
+}
+
+.hero-buttons .btn-primary-custom:hover {
+  background: linear-gradient(135deg, #c02366, #a01e56);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(226, 52, 138, 0.4);
+}
+
+.hero-buttons .btn-secondary-custom {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(84, 51, 41, 0.8);
+  color: #543329;
+  backdrop-filter: blur(10px);
+  font-weight: 600;
+}
+
+.hero-buttons .btn-secondary-custom:hover {
+  background: white;
+  border-color: #543329;
+  color: #543329;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(84, 51, 41, 0.3);
+}
+
+/* Specialty Cards */
+.specialty-card {
+  height: 100%;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.specialty-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+}
+
+.card-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  height: 250px;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.specialty-card:hover .card-image {
+  transform: scale(1.1);
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(226, 52, 138, 0.8),
+    rgba(84, 51, 41, 0.8)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.specialty-card:hover .card-overlay {
+  opacity: 1;
+}
+
+.card-icon {
+  font-size: 3rem;
+  animation: bounce 2s infinite;
+}
+
+.card-title-custom {
+  color: var(--primary-brown);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.card-text-custom {
+  color: var(--text-light);
+  line-height: 1.6;
+}
+
+/* Features Grid */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 0;
+}
+
+.feature-item {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.feature-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(226, 52, 138, 0.2);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.feature-title {
+  color: var(--primary-brown);
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  font-size: 1.2rem;
+}
+
+.feature-text {
+  color: var(--text-light);
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* About Image */
+.about-image-wrapper {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  height: 280px;
+  flex: 1;
+}
+
+.about-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.about-image-wrapper:hover .about-image {
+  transform: scale(1.05);
+}
+
+.about-image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(84, 51, 41, 0.9));
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.about-stats {
+  display: flex;
+  justify-content: space-around;
+}
+
+.stat-item {
+  text-align: center;
+  color: white;
+}
+
+.stat-item h4 {
+  color: var(--light-pink);
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.stat-item p {
+  color: white;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.about-image-overlay .btn-secondary-custom {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid white;
+  color: var(--primary-brown);
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+}
+
+.about-image-overlay .btn-secondary-custom:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* CTA Section */
+.cta-buttons {
+  margin-top: 2rem;
+}
+
+/* Animations */
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Responsive Design */
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-section {
+    height: 60vh;
+    min-height: 400px;
+    max-height: 500px;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .hero-buttons .btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .about-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cta-buttons .btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .card-image-wrapper {
+    height: 200px;
+  }
+}

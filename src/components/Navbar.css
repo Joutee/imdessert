@@ -1,0 +1,177 @@
+/* Navbar Styles */
+.navbar-custom {
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(226, 52, 138, 0.1);
+  padding: 5px 0;
+  transition: all 0.3s ease;
+}
+
+.navbar-brand-custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e2348a15, #54332915);
+  transition: all 0.3s ease;
+}
+
+.navbar-brand-custom:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #e2348a25, #54332925);
+  box-shadow: 0 8px 25px rgba(226, 52, 138, 0.2);
+}
+
+.navbar-logo {
+  height: 45px;
+  width: 45px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(226, 52, 138, 0.3));
+  transition: all 0.3s ease;
+}
+
+.nav-link-custom {
+  color: #543329 !important;
+  font-weight: 500;
+  margin: 0 8px;
+  padding: 10px 20px !important;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link-custom::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #e2348a, #c02366);
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+
+.nav-link-custom:hover::before {
+  left: 0;
+}
+
+.nav-link-custom:hover {
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(226, 52, 138, 0.3);
+}
+
+.nav-link-custom.facebook-icon {
+  color: var(--brand-brown);
+  margin-left: 15px;
+  transition: all 0.3s ease;
+}
+
+.nav-link-custom.facebook-icon:hover {
+  color: var(--brand-pink);
+  transform: scale(1.1);
+}
+
+/* Footer Styles */
+.footer-custom {
+  background: linear-gradient(135deg, #543329, #3d221a);
+  color: white;
+  padding: 60px 0 20px;
+  margin-top: 80px;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.footer-brand h5 {
+  color: #e2348a;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.footer-brand p {
+  color: #f3a8c7;
+  font-style: italic;
+}
+
+.footer-logo {
+  height: 40px;
+  margin-bottom: 15px;
+  filter: brightness(0) invert(1);
+}
+
+.footer-links h6,
+.footer-contact h6 {
+  color: #e2348a;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.footer-link {
+  display: block;
+  color: #fdf8f5;
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.footer-link:hover {
+  color: #f3a8c7;
+  transform: translateX(5px);
+}
+
+.footer-link.facebook-icon {
+  color: var(--brand-brown);
+  margin-left: 10px;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.footer-link.facebook-icon:hover {
+  color: var(--brand-pink);
+  transform: scale(1.1);
+}
+
+.footer-contact p {
+  color: #fdf8f5;
+  margin-bottom: 8px;
+}
+
+.footer-divider {
+  border-color: #8b5a3c;
+  margin: 30px 0;
+}
+
+.footer-bottom {
+  text-align: center;
+}
+
+.footer-bottom p {
+  color: #f3a8c7;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    text-align: center;
+  }
+
+  .navbar-title {
+    font-size: 1.5rem;
+  }
+
+  .navbar-logo {
+    height: 40px;
+  }
+}
