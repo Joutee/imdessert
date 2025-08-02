@@ -98,6 +98,9 @@
   height: 100%;
   object-fit: cover;
   transition: transform 0.4s ease;
+  background: url("../../public/images/hero/placeholder.png") center/cover
+    no-repeat;
+  border-radius: 15px;
 }
 
 .gallery-item:hover .gallery-image {
@@ -134,8 +137,7 @@
   width: 90vw;
   height: 90vh;
   object-fit: contain;
-  border-radius: 0;
-  box-shadow: none;
+  border-radius: 15px;
 }
 
 /* Fullscreen modal styling */

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Container, Row, Col } from "react-bootstrap";
+import { googleDriveApi, GoogleDriveImage } from "../services/googleDriveApi";
 import "./Gallery.css";
 
 interface GalleryItem {
-  id: number;
+  id: string;
   image: string;
   categoryLabel: string;
+  thumbnailLink?: string;
 }
 
 const Gallery: React.FC = () => {
@@ -14,113 +16,86 @@ const Gallery: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>("Vše");
   const [showModal, setShowModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mapping kategorií k obrázkům
-  const categoryImages = {
-    "Svatební dorty": [
-      "gallery/svatebni_dorty/226355835_611830156446746_2348951962239083661_n.jpg",
-      "gallery/svatebni_dorty/239972602_581904572834152_5605270540226798176_n (1).jpg",
-      "gallery/svatebni_dorty/3.JPG",
-      "gallery/svatebni_dorty/8888.jpg",
-      "gallery/svatebni_dorty/IMG-20220719-WA0004.jpg",
-      "gallery/svatebni_dorty/IMG20230930093600.jpg",
-      "gallery/svatebni_dorty/IMG_0009.JPG",
-      "gallery/svatebni_dorty/IMG_20230812_153224.jpg",
-      "gallery/svatebni_dorty/IMG_2544.JPG",
-      "gallery/svatebni_dorty/IMG_3806.JPG",
-      "gallery/svatebni_dorty/IMG_3836.JPG",
-      "gallery/svatebni_dorty/IMG_3868.JPG",
-      "gallery/svatebni_dorty/IMG_3896.JPG",
-      "gallery/svatebni_dorty/IMG_4031.JPG",
-      "gallery/svatebni_dorty/_MG_6369.jpg",
-    ],
-    Dortíky: [
-      "gallery/dortiky/2021-07-10 marketavlasata photo (244).jpg",
-      "gallery/dortiky/IMG_2329.JPG",
-      "gallery/dortiky/_3213884.JPG",
-      "gallery/dortiky/_3213887.JPG",
-      "gallery/dortiky/_3213894.JPG",
-    ],
-    "Svatební bary": [
-      "gallery/svatebni_bary/2021-07-10 marketavlasata photo (237).jpg",
-      "gallery/svatebni_bary/2021-07-10 marketavlasata photo (238).jpg",
-      "gallery/svatebni_bary/2021-07-10 marketavlasata photo (240).jpg",
-      "gallery/svatebni_bary/2021-07-10 marketavlasata photo (241).jpg",
-      "gallery/svatebni_bary/2021-07-10 marketavlasata photo (242).jpg",
-      "gallery/svatebni_bary/296446143_3267480410191559_1126760623025135470_n.jpg",
-      "gallery/svatebni_bary/296472004_2287493091404050_1238877990560344701_n.jpg",
-      "gallery/svatebni_bary/296746580_539205938003209_4468912488144096325_n.jpg",
-      "gallery/svatebni_bary/Aneta&Richard 198.jpg",
-      "gallery/svatebni_bary/Aneta&Richard 199.jpg",
-      "gallery/svatebni_bary/Aneta&Richard 202.jpg",
-    ],
-    Pohárky: [
-      "gallery/poharky/DSC04245.jpg",
-      "gallery/poharky/_3113766.JPG",
-      "gallery/poharky/_3113779.JPG",
-      "gallery/poharky/_3113788.JPG",
-      "gallery/poharky/_3113791.JPG",
-      "gallery/poharky/_3113792.JPG",
-      "gallery/poharky/_9170895.JPG",
-    ],
-    Tartaletky: [
-      "gallery/tartaletky/1.jpeg",
-      "gallery/tartaletky/20180908_100936.jpg",
-      "gallery/tartaletky/9170897.JPG",
-      "gallery/tartaletky/IMG_0062.JPG",
-      "gallery/tartaletky/IMG_0080.JPG",
-      "gallery/tartaletky/IMG_0082.JPG",
-      "gallery/tartaletky/IMG_0093.JPG",
-      "gallery/tartaletky/IMG_0097.JPG",
-      "gallery/tartaletky/IMG_2319.JPG",
-      "gallery/tartaletky/IMG_2608.JPG",
-    ],
-    Minidezerty: [
-      "gallery/minidezerty/92713601_683283548880254_4619769713814142976_n.jpg",
-      "gallery/minidezerty/IMG_0406.JPG",
-      "gallery/minidezerty/IMG_2478.JPG",
-      "gallery/minidezerty/IMG_2509.JPG",
-      "gallery/minidezerty/IMG_2512.JPG",
-      "gallery/minidezerty/IMG_2613.JPG",
-    ],
-    "Odpalované větrníčky": [
-      "gallery/odpalovane_vetrnicky_a_eclairs/_3244126.JPG",
-      "gallery/odpalovane_vetrnicky_a_eclairs/_3244139.JPG",
-      "gallery/odpalovane_vetrnicky_a_eclairs/_9170900.JPG",
-    ],
-    "Ovoce a tvary": [
-      "gallery/ovoce_a_jine_tvary/99044344_644685266389855_384932294965592064_n.jpg",
-      "gallery/ovoce_a_jine_tvary/IMG_2945.JPG",
-    ],
-    "Tradiční zákusky": [
-      "gallery/tradicni_zakusky/1.jpg",
-      "gallery/tradicni_zakusky/20180908_104148.jpg",
-      "gallery/tradicni_zakusky/_9170888.JPG",
-    ],
-  };
+  // Funkce pro načítání obrázků z Google Drive
+  const fetchGalleryImages = async (
+    forceRefresh: boolean = false
+  ): Promise<void> => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  // Funkce pro generování gallery items
-  const generateGalleryItems = (): GalleryItem[] => {
-    const items: GalleryItem[] = [];
-    let id = 1;
+      const googleImages = await googleDriveApi.getAllGalleryImages(
+        forceRefresh
+      );
 
-    Object.entries(categoryImages).forEach(([category, images]) => {
-      images.forEach((imageName) => {
-        items.push({
-          id: id++,
-          image: `/images/${imageName}`,
-          categoryLabel: category,
-        });
+      const galleryItems: GalleryItem[] = googleImages.map(
+        (img: GoogleDriveImage) => ({
+          id: img.id,
+          image: img.thumbnailLink
+            ? img.thumbnailLink.replace("=s220", "=s800")
+            : `https://lh3.googleusercontent.com/d/${img.id}=s800`, // Vyšší kvalita
+          categoryLabel: img.category,
+          thumbnailLink: img.thumbnailLink,
+        })
+      );
+
+      setGalleryItems(galleryItems);
+      setFilteredItems(galleryItems);
+
+      // Debug: výpis prvních pár URLs
+      console.log("🔍 Ukázka generovaných URLs:");
+      galleryItems.slice(0, 3).forEach((item, index) => {
+        console.log(
+          `  ${index + 1}. ${item.categoryLabel} (${item.id}): ${item.image}`
+        );
       });
-    });
 
-    return items;
+      if (forceRefresh) {
+        console.log("🔄 Galerie byla vynuceně obnovena!");
+      }
+    } catch (error: any) {
+      console.error("Chyba při načítání obrázků:", error);
+
+      // Pokus o refresh tokenu při 401 chybě
+      if (error.status === 401) {
+        try {
+          console.log("🔄 Pokouším se obnovit access token...");
+          await googleDriveApi.refreshAccessToken();
+          // Zkusíme to znovu
+          const googleImages = await googleDriveApi.getAllGalleryImages(
+            forceRefresh
+          );
+          const galleryItems: GalleryItem[] = googleImages.map(
+            (img: GoogleDriveImage) => ({
+              id: img.id,
+              image: img.thumbnailLink
+                ? img.thumbnailLink.replace("=s220", "=s800")
+                : `https://lh3.googleusercontent.com/d/${img.id}=s800`, // Vyšší kvalita
+              categoryLabel: img.category,
+              thumbnailLink: img.thumbnailLink,
+            })
+          );
+          setGalleryItems(galleryItems);
+          setFilteredItems(galleryItems);
+          return;
+        } catch (refreshError) {
+          console.error("❌ Chyba při obnovení tokenu:", refreshError);
+        }
+      }
+
+      setError(
+        "Nepodařilo se načíst obrázky z Google Drive. Zkuste to prosím později."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const items = generateGalleryItems();
-    setGalleryItems(items);
-    setFilteredItems(items);
+    fetchGalleryImages();
   }, []);
 
   useEffect(() => {
@@ -133,10 +108,13 @@ const Gallery: React.FC = () => {
     }
   }, [activeCategory, galleryItems]);
 
-  // Získání jedinečných kategorií
+  // Získání jedinečných kategorií z načtených obrázků
   const getCategories = () => {
-    const categories = ["Vše", ...Object.keys(categoryImages)];
-    return categories;
+    const categories = ["Vše"];
+    const uniqueCategories = Array.from(
+      new Set(galleryItems.map((item) => item.categoryLabel))
+    );
+    return [...categories, ...uniqueCategories.sort()];
   };
 
   const handleCategoryFilter = (category: string) => {
@@ -144,6 +122,12 @@ const Gallery: React.FC = () => {
   };
 
   const handleImageClick = (index: number) => {
+    console.log("🖼️ Kliknuto na obrázek:", {
+      index,
+      imageId: filteredItems[index]?.id,
+      thumbnailLink: filteredItems[index]?.thumbnailLink,
+      category: filteredItems[index]?.categoryLabel,
+    });
     setCurrentImageIndex(index);
     setShowModal(true);
   };
@@ -178,43 +162,89 @@ const Gallery: React.FC = () => {
     <Container className="gallery-container">
       <h2 className="gallery-title">Naše Tvorba</h2>
 
+      {/* Loading stav */}
+      {loading && (
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Načítání...</span>
+          </div>
+          <p className="mt-3">Načítám obrázky z Google Drive...</p>
+        </div>
+      )}
+
+      {/* Error stav */}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          <h4 className="alert-heading">Chyba při načítání</h4>
+          <p>{error}</p>
+          <hr />
+          <button
+            className="btn btn-outline-danger"
+            onClick={() => fetchGalleryImages(true)}
+          >
+            Zkusit znovu (s vynuceným obnovením)
+          </button>
+        </div>
+      )}
+
       {/* Filtrační tlačítka */}
-      <div className="filter-buttons mb-4">
-        <Row className="justify-content-center">
-          {getCategories().map((category) => (
-            <Col key={category} xs="auto" className="mb-2">
-              <button
-                className={`filter-btn ${
-                  activeCategory === category ? "active" : ""
-                }`}
-                onClick={() => handleCategoryFilter(category)}
+      {!loading && !error && (
+        <div className="filter-buttons mb-4">
+          <Row className="justify-content-center">
+            {getCategories().map((category) => (
+              <Col key={category} xs="auto" className="mb-2">
+                <button
+                  className={`filter-btn ${
+                    activeCategory === category ? "active" : ""
+                  }`}
+                  onClick={() => handleCategoryFilter(category)}
+                >
+                  {category}
+                </button>
+              </Col>
+            ))}
+          </Row>
+        </div>
+      )}
+
+      {/* Galerie obrázků */}
+      {!loading && !error && (
+        <Row>
+          {filteredItems.map((item, index) => (
+            <Col key={item.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
+              <div
+                className="gallery-item"
+                onClick={() => handleImageClick(index)}
               >
-                {category}
-              </button>
+                <img
+                  src={item.image}
+                  alt={item.categoryLabel}
+                  className="gallery-image"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    console.log("❌ Chyba při načítání obrázku:", item.id);
+                    console.log("❌ URL která selhala:", target.src);
+
+                    // Zkusíme fallback na lh3.googleusercontent.com
+                    if (!target.src.includes("lh3.googleusercontent.com")) {
+                      console.log(
+                        "🔄 Zkouším fallback na lh3.googleusercontent.com"
+                      );
+                      target.src = `https://lh3.googleusercontent.com/d/${item.id}=s800`;
+                    } else {
+                      console.log("🔄 Skrývám obrázek, všechny URL selhaly");
+                      target.style.display = "none";
+                    }
+                  }}
+                />
+                <div className="gallery-overlay">
+                  <span className="gallery-category">{item.categoryLabel}</span>
+                </div>
+              </div>
             </Col>
           ))}
         </Row>
-      </div>
-
-      <Row>
-        {filteredItems.map((item, index) => (
-          <Col key={item.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
-            <div
-              className="gallery-item"
-              onClick={() => handleImageClick(index)}
-            >
-              <img
-                src={item.image}
-                alt={item.categoryLabel}
-                className="gallery-image"
-              />
-              <div className="gallery-overlay">
-                <span className="gallery-category">{item.categoryLabel}</span>
-              </div>
-            </div>
-          </Col>
-        ))}
-      </Row>
+      )}
 
       <Modal
         show={showModal}
@@ -236,9 +266,37 @@ const Gallery: React.FC = () => {
                 &#10005;
               </button>
               <img
-                src={filteredItems[currentImageIndex]?.image}
+                src={
+                  filteredItems[currentImageIndex]?.thumbnailLink
+                    ? filteredItems[currentImageIndex]?.thumbnailLink?.replace(
+                        "=s220",
+                        "=s1600"
+                      )
+                    : `https://lh3.googleusercontent.com/d/${filteredItems[currentImageIndex]?.id}=s1600`
+                }
                 alt={filteredItems[currentImageIndex]?.categoryLabel}
                 className="modal-image"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  console.log(
+                    "❌ Chyba při načítání modalu:",
+                    filteredItems[currentImageIndex]?.id
+                  );
+                  console.log("❌ URL která selhala:", target.src);
+
+                  // Fallback na drive.google.com/uc
+                  if (!target.src.includes("drive.google.com/uc")) {
+                    console.log(
+                      "🔄 Zkouším fallback na drive.google.com/uc pro modal"
+                    );
+                    target.src = `https://drive.google.com/uc?id=${filteredItems[currentImageIndex]?.id}&export=view`;
+                  } else {
+                    console.log(
+                      "🔄 Skrývám modal obrázek, všechny URL selhaly"
+                    );
+                    target.style.display = "none";
+                  }
+                }}
               />
               <button
                 className="modal-nav-btn modal-prev-btn"

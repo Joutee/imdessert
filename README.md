@@ -32,7 +32,23 @@ cd imdessert
 npm install
 ```
 
-3. Spusťte vývojový server
+3. Nastavte environment variables
+
+```bash
+cp .env.example .env
+```
+
+Upravte `.env` soubor a nastavte své Google Drive API údaje:
+
+```
+REACT_APP_GOOGLE_CLIENT_ID=your_client_id_here
+REACT_APP_GOOGLE_CLIENT_SECRET=your_client_secret_here
+REACT_APP_GOOGLE_REFRESH_TOKEN=your_refresh_token_here
+REACT_APP_GOOGLE_ACCESS_TOKEN=your_access_token_here
+REACT_APP_GOOGLE_DRIVE_FOLDER_ID=your_google_drive_folder_id_here
+```
+
+4. Spusťte vývojový server
 
 ```bash
 npm start
