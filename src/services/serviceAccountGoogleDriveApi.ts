@@ -9,20 +9,15 @@ const MAIN_FOLDER_ID = process.env.REACT_APP_GOOGLE_DRIVE_FOLDER_ID;
 
 // Mapování názvů složek na kategorie
 const FOLDER_NAME_MAP: { [key: string]: string } = {
-  "Svatebni dorty": "Svatební dorty",
-  "Svatební dorty": "Svatební dorty",
+  dorty: "Svatební dorty",
   Dortiky: "Dortíky",
-  "Svatebni bary": "Svatební bary",
-  "Svatební bary": "Svatební bary",
+  bary: "Svatební bary",
   Poharky: "Pohárky",
-  Pohárky: "Pohárky",
   Tartaletky: "Tartaletky",
   Minidezerty: "Minidezerty",
-  "Odpalovane vetr": "Odpalované větrníčky",
-  "Odpalované větr": "Odpalované větrníčky",
-  "Ovoce a tvary": "Ovoce a tvary",
-  "Tradicni zakusky": "Tradiční zákusky",
-  "Tradiční zákusky": "Tradiční zákusky",
+  odpalovane: "Odpalované větrníčky",
+  Ovoce: "Ovoce a tvary",
+  Zakusky: "Tradiční zákusky",
 };
 
 export interface GoogleDriveImage {
