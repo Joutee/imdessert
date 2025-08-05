@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Container, Row, Col } from "react-bootstrap";
-import { googleDriveApi, GoogleDriveImage } from "../services/googleDriveApi";
+import {
+  serviceAccountGoogleDriveApi,
+  GoogleDriveImage,
+} from "../services/serviceAccountGoogleDriveApi";
 import "./Gallery.css";
 
 interface GalleryItem {
@@ -27,16 +30,13 @@ const Gallery: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const googleImages = await googleDriveApi.getAllGalleryImages(
-        forceRefresh
-      );
+      const googleImages =
+        await serviceAccountGoogleDriveApi.getAllGalleryImages(forceRefresh);
 
       const galleryItems: GalleryItem[] = googleImages.map(
         (img: GoogleDriveImage) => ({
           id: img.id,
-          image: img.thumbnailLink
-            ? img.thumbnailLink.replace("=s220", "=s800")
-            : `https://lh3.googleusercontent.com/d/${img.id}=s800`, // Vyšší kvalita
+          image: serviceAccountGoogleDriveApi.getThumbnailUrl(img, 800),
           categoryLabel: img.category,
           thumbnailLink: img.thumbnailLink,
         })
@@ -58,34 +58,6 @@ const Gallery: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Chyba při načítání obrázků:", error);
-
-      // Pokus o refresh tokenu při 401 chybě
-      if (error.status === 401) {
-        try {
-          console.log("🔄 Pokouším se obnovit access token...");
-          await googleDriveApi.refreshAccessToken();
-          // Zkusíme to znovu
-          const googleImages = await googleDriveApi.getAllGalleryImages(
-            forceRefresh
-          );
-          const galleryItems: GalleryItem[] = googleImages.map(
-            (img: GoogleDriveImage) => ({
-              id: img.id,
-              image: img.thumbnailLink
-                ? img.thumbnailLink.replace("=s220", "=s800")
-                : `https://lh3.googleusercontent.com/d/${img.id}=s800`, // Vyšší kvalita
-              categoryLabel: img.category,
-              thumbnailLink: img.thumbnailLink,
-            })
-          );
-          setGalleryItems(galleryItems);
-          setFilteredItems(galleryItems);
-          return;
-        } catch (refreshError) {
-          console.error("❌ Chyba při obnovení tokenu:", refreshError);
-        }
-      }
-
       setError(
         "Nepodařilo se načíst obrázky z Google Drive. Zkuste to prosím později."
       );
@@ -168,7 +140,7 @@ const Gallery: React.FC = () => {
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Načítání...</span>
           </div>
-          <p className="mt-3">Načítám obrázky z Google Drive...</p>
+          <p className="mt-3">Načítáme obrázky...</p>
         </div>
       )}
 
@@ -266,14 +238,7 @@ const Gallery: React.FC = () => {
                 &#10005;
               </button>
               <img
-                src={
-                  filteredItems[currentImageIndex]?.thumbnailLink
-                    ? filteredItems[currentImageIndex]?.thumbnailLink?.replace(
-                        "=s220",
-                        "=s1600"
-                      )
-                    : `https://lh3.googleusercontent.com/d/${filteredItems[currentImageIndex]?.id}=s1600`
-                }
+                src={`https://drive.google.com/uc?id=${filteredItems[currentImageIndex]?.id}&export=view`}
                 alt={filteredItems[currentImageIndex]?.categoryLabel}
                 className="modal-image"
                 onError={(e) => {
@@ -284,12 +249,12 @@ const Gallery: React.FC = () => {
                   );
                   console.log("❌ URL která selhala:", target.src);
 
-                  // Fallback na drive.google.com/uc
-                  if (!target.src.includes("drive.google.com/uc")) {
+                  // Fallback na lh3.googleusercontent.com
+                  if (!target.src.includes("lh3.googleusercontent.com")) {
                     console.log(
-                      "🔄 Zkouším fallback na drive.google.com/uc pro modal"
+                      "🔄 Zkouším fallback na lh3.googleusercontent.com pro modal"
                     );
-                    target.src = `https://drive.google.com/uc?id=${filteredItems[currentImageIndex]?.id}&export=view`;
+                    target.src = `https://lh3.googleusercontent.com/d/${filteredItems[currentImageIndex]?.id}=s1600`;
                   } else {
                     console.log(
                       "🔄 Skrývám modal obrázek, všechny URL selhaly"
