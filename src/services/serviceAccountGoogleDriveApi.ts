@@ -7,18 +7,10 @@ const SERVICE_ACCOUNT_PRIVATE_KEY =
   process.env.REACT_APP_GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
 const MAIN_FOLDER_ID = process.env.REACT_APP_GOOGLE_DRIVE_FOLDER_ID;
 
-// Mapování názvů složek na kategorie
-const FOLDER_NAME_MAP: { [key: string]: string } = {
-  dorty: "Svatební dorty",
-  Dortiky: "Dortíky",
-  bary: "Svatební bary",
-  Poharky: "Pohárky",
-  Tartaletky: "Tartaletky",
-  Minidezerty: "Minidezerty",
-  odpalovane: "Odpalované větrníčky",
-  Ovoce: "Ovoce a tvary",
-  Zakusky: "Tradiční zákusky",
-};
+export interface GoogleDriveFolder {
+  id: string;
+  name: string;
+}
 
 export interface GoogleDriveImage {
   id: string;
@@ -27,6 +19,12 @@ export interface GoogleDriveImage {
   webViewLink: string;
   webContentLink: string;
   category: string;
+  folderId: string;
+}
+
+export interface GalleryData {
+  folders: GoogleDriveFolder[];
+  images: GoogleDriveImage[];
 }
 
 class ServiceAccountGoogleDriveApi {
@@ -143,7 +141,12 @@ class ServiceAccountGoogleDriveApi {
 
     try {
       console.log("🔑 Získávám nový Service Account token...");
+      console.log("📧 Service Account Email:", SERVICE_ACCOUNT_EMAIL);
+      console.log("🔐 Private Key prezent:", SERVICE_ACCOUNT_PRIVATE_KEY ? "✅" : "❌");
+      console.log("📁 Main Folder ID:", MAIN_FOLDER_ID);
+      
       const assertion = await this.createJWT();
+      console.log("🎯 JWT assertion vytvořen, délka:", assertion.length);
 
       const response = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
@@ -221,7 +224,7 @@ class ServiceAccountGoogleDriveApi {
   }
 
   // Získání všech složek z galerie
-  async getGalleryFolders(): Promise<string[]> {
+  async getGalleryFolders(): Promise<GoogleDriveFolder[]> {
     try {
       console.log("📁 Načítám složky galerie z Google Drive...");
 
@@ -239,7 +242,10 @@ class ServiceAccountGoogleDriveApi {
         folders.map((f: any) => f.name)
       );
 
-      return folders.map((folder: any) => folder.name);
+      return folders.map((folder: any) => ({
+        id: folder.id,
+        name: folder.name,
+      }));
     } catch (error) {
       console.error("❌ Chyba při načítání složek:", error);
       throw error;
@@ -268,15 +274,14 @@ class ServiceAccountGoogleDriveApi {
         `✅ Nalezeno ${files.length} obrázků ve složce "${folderName}"`
       );
 
-      const mappedCategory = FOLDER_NAME_MAP[folderName] || folderName;
-
       return files.map((file: any) => ({
         id: file.id,
         name: file.name,
         thumbnailLink: file.thumbnailLink || "",
         webViewLink: file.webViewLink || "",
         webContentLink: file.webContentLink || "",
-        category: mappedCategory,
+        category: folderName, // Použijeme přímo název složky jako kategorii
+        folderId: folderId,
       }));
     } catch (error) {
       console.error(
@@ -294,16 +299,8 @@ class ServiceAccountGoogleDriveApi {
     try {
       console.log("🎯 Začínám načítání kompletní galerie...");
 
-      // Nejdříve získáme ID všech složek
-      const foldersData = await this.makeApiCall(
-        "https://www.googleapis.com/drive/v3/files",
-        {
-          q: `'${MAIN_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-          fields: "files(id,name)",
-        }
-      );
-
-      const folders = foldersData.files || [];
+      // Nejdříve získáme všechny složky
+      const folders = await this.getGalleryFolders();
       console.log(`📁 Nalezeno ${folders.length} složek pro zpracování`);
 
       // Získáme obrázky ze všech složek
@@ -335,17 +332,92 @@ class ServiceAccountGoogleDriveApi {
     }
   }
 
+  // Nová metoda pro získání kompletních dat galerie (složky + obrázky)
+  async getCompleteGalleryData(
+    forceRefresh: boolean = false
+  ): Promise<GalleryData> {
+    try {
+      console.log("🎯 Načítám kompletní data galerie...");
+
+      // Nejdříve získáme všechny složky
+      const folders = await this.getGalleryFolders();
+      
+      // Pak získáme všechny obrázky
+      const images = await this.getAllGalleryImages(forceRefresh);
+
+      return {
+        folders,
+        images,
+      };
+    } catch (error) {
+      console.error("❌ Chyba při načítání kompletních dat galerie:", error);
+      throw error;
+    }
+  }
+
   // Získání přímého odkazu na obrázek ve vysoké kvalitě
   getHighQualityImageUrl(image: GoogleDriveImage): string {
+    // Používáme drive.google.com pro spolehlivé načítání velkých obrázků
     return `https://drive.google.com/uc?id=${image.id}&export=view`;
   }
 
-  // Získání odkazu na thumbnail
+  // Získání odkazu na thumbnail s fallback strategií
   getThumbnailUrl(image: GoogleDriveImage, size: number = 400): string {
-    if (image.thumbnailLink) {
+    // Priorita 1: Upravený thumbnailLink z Google Drive API
+    if (image.thumbnailLink && image.thumbnailLink.includes('googleusercontent.com')) {
       return image.thumbnailLink.replace(/=s\d+/, `=s${size}`);
     }
-    return this.getHighQualityImageUrl(image);
+    
+    // Priorita 2: Spolehlivý lh3.googleusercontent.com odkaz
+    return `https://lh3.googleusercontent.com/d/${image.id}=s${size}`;
+  }
+
+  // Získání několika variant URL pro fallback
+  getImageUrls(image: GoogleDriveImage, size: number = 400): { primary: string; fallbacks: string[] } {
+    const urls = [];
+    
+    console.log(`🔗 Generuji URLs pro obrázek ${image.id}:`, {
+      thumbnailLink: image.thumbnailLink,
+      category: image.category,
+      name: image.name
+    });
+    
+    // Priorita 1: Pokud máme thumbnailLink, přidáme ho jako první
+    if (image.thumbnailLink && image.thumbnailLink.includes('googleusercontent.com')) {
+      const modifiedThumbnail = image.thumbnailLink.replace(/=s\d+/, `=s${size}`);
+      urls.push(modifiedThumbnail);
+      console.log(`  ✅ Přidán thumbnailLink:`, modifiedThumbnail);
+    }
+    
+    // Priorita 2: drive.google.com/uc URL (často funguje lépe)
+    const driveUrl = `https://drive.google.com/uc?id=${image.id}&export=view`;
+    urls.push(driveUrl);
+    console.log(`  ✅ Přidán drive URL:`, driveUrl);
+    
+    // Priorita 3: lh3.googleusercontent.com variantu
+    const lh3Url = `https://lh3.googleusercontent.com/d/${image.id}=s${size}`;
+    urls.push(lh3Url);
+    console.log(`  ✅ Přidán lh3 URL:`, lh3Url);
+    
+    // Priorita 4: Další lh3 varianty s různými velikostmi
+    if (size > 400) {
+      urls.push(`https://lh3.googleusercontent.com/d/${image.id}=s400`);
+      console.log(`  ✅ Přidán lh3 URL s menší velikostí`);
+    }
+    
+    // Priorita 5: docs.google.com variantu
+    const docsUrl = `https://docs.google.com/uc?id=${image.id}&export=download`;
+    urls.push(docsUrl);
+    console.log(`  ✅ Přidán docs URL:`, docsUrl);
+    
+    const result = {
+      primary: urls[0],
+      fallbacks: urls.slice(1)
+    };
+    
+    console.log(`  🎯 Finální URLs:`, result);
+    
+    return result;
   }
 }
 

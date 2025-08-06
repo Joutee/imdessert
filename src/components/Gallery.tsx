@@ -3,6 +3,7 @@ import { Modal, Container, Row, Col } from "react-bootstrap";
 import {
   serviceAccountGoogleDriveApi,
   GoogleDriveImage,
+  GalleryData,
 } from "../services/serviceAccountGoogleDriveApi";
 import "./Gallery.css";
 
@@ -11,35 +12,60 @@ interface GalleryItem {
   image: string;
   categoryLabel: string;
   thumbnailLink?: string;
+  fallbackUrls?: string[];
 }
 
 const Gallery: React.FC = () => {
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<GalleryItem[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("Vše");
   const [showModal, setShowModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Funkce pro načítání obrázků z Google Drive
-  const fetchGalleryImages = async (
+  // Funkce pro načítání dat z Google Drive
+  const fetchGalleryData = async (
     forceRefresh: boolean = false
   ): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
 
-      const googleImages =
-        await serviceAccountGoogleDriveApi.getAllGalleryImages(forceRefresh);
+      console.log("🚀 Načítám dynamická data galerie...");
 
-      const galleryItems: GalleryItem[] = googleImages.map(
-        (img: GoogleDriveImage) => ({
-          id: img.id,
-          image: serviceAccountGoogleDriveApi.getThumbnailUrl(img, 800),
-          categoryLabel: img.category,
-          thumbnailLink: img.thumbnailLink,
-        })
+      // Získáme kompletní data (složky + obrázky)
+      const galleryData: GalleryData = 
+        await serviceAccountGoogleDriveApi.getCompleteGalleryData(forceRefresh);
+
+      console.log("📊 Načtená data z API:", {
+        folders: galleryData.folders,
+        imagesCount: galleryData.images.length,
+        firstImage: galleryData.images[0]
+      });
+
+      // Vytvoříme seznam kategorií ze složek
+      const folderNames = galleryData.folders.map(folder => folder.name);
+      const allCategories = ["Vše", ...folderNames.sort()];
+      setCategories(allCategories);
+
+      console.log("📁 Dynamicky načtené kategorie:", allCategories);
+
+      // Převedeme obrázky na formát pro galerii
+      const galleryItems: GalleryItem[] = galleryData.images.map(
+        (img: GoogleDriveImage) => {
+          // Získáme spolehlivé URL pro miniaturu
+          const imageUrls = serviceAccountGoogleDriveApi.getImageUrls(img, 800);
+          
+          return {
+            id: img.id,
+            image: imageUrls.primary,
+            categoryLabel: img.category,
+            thumbnailLink: img.thumbnailLink,
+            fallbackUrls: imageUrls.fallbacks, // Přidáme fallback URLs
+          };
+        }
       );
 
       setGalleryItems(galleryItems);
@@ -67,7 +93,7 @@ const Gallery: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchGalleryImages();
+    fetchGalleryData();
   }, []);
 
   useEffect(() => {
@@ -80,13 +106,9 @@ const Gallery: React.FC = () => {
     }
   }, [activeCategory, galleryItems]);
 
-  // Získání jedinečných kategorií z načtených obrázků
+  // Dynamické získání kategorií z načtených dat
   const getCategories = () => {
-    const categories = ["Vše"];
-    const uniqueCategories = Array.from(
-      new Set(galleryItems.map((item) => item.categoryLabel))
-    );
-    return [...categories, ...uniqueCategories.sort()];
+    return categories; // Používáme dynamicky načtené kategorie
   };
 
   const handleCategoryFilter = (category: string) => {
@@ -152,7 +174,7 @@ const Gallery: React.FC = () => {
           <hr />
           <button
             className="btn btn-outline-danger"
-            onClick={() => fetchGalleryImages(true)}
+            onClick={() => fetchGalleryData(true)}
           >
             Zkusit znovu (s vynuceným obnovením)
           </button>
@@ -194,19 +216,32 @@ const Gallery: React.FC = () => {
                   className="gallery-image"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    console.log("❌ Chyba při načítání obrázku:", item.id);
+                    console.log("❌ Chyba při načítání miniatury:", item.id);
                     console.log("❌ URL která selhala:", target.src);
 
-                    // Zkusíme fallback na lh3.googleusercontent.com
-                    if (!target.src.includes("lh3.googleusercontent.com")) {
-                      console.log(
-                        "🔄 Zkouším fallback na lh3.googleusercontent.com"
-                      );
-                      target.src = `https://lh3.googleusercontent.com/d/${item.id}=s800`;
-                    } else {
-                      console.log("🔄 Skrývám obrázek, všechny URL selhaly");
-                      target.style.display = "none";
+                    // Zkusíme fallback URLs pokud je máme
+                    if (item.fallbackUrls && item.fallbackUrls.length > 0) {
+                      // Najdeme aktuální URL v seznamu fallbacks
+                      const currentUrlIndex = item.fallbackUrls.findIndex(url => url === target.src);
+                      const nextUrlIndex = currentUrlIndex + 1;
+                      
+                      if (nextUrlIndex < item.fallbackUrls.length) {
+                        const nextUrl = item.fallbackUrls[nextUrlIndex];
+                        console.log(`🔄 Zkouším fallback URL ${nextUrlIndex + 1}:`, nextUrl);
+                        target.src = nextUrl;
+                        return;
+                      } else if (currentUrlIndex === -1 && item.fallbackUrls.length > 0) {
+                        // Pokud aktuální URL není v fallbacks, zkusíme první fallback
+                        console.log("🔄 Zkouším první fallback URL:", item.fallbackUrls[0]);
+                        target.src = item.fallbackUrls[0];
+                        return;
+                      }
                     }
+
+                    // Pokud ani fallback nefunguje, nahradíme placeholder obrázkem
+                    console.log("🔄 Používám placeholder obrázek");
+                    target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8f9fa'/%3E%3Ctext x='200' y='150' text-anchor='middle' dy='0.3em' font-family='Arial, sans-serif' font-size='16' fill='%23868e96'%3ENačítání...%3C/text%3E%3C/svg%3E";
+                    target.style.opacity = "0.5";
                   }}
                 />
                 <div className="gallery-overlay">
@@ -238,28 +273,46 @@ const Gallery: React.FC = () => {
                 &#10005;
               </button>
               <img
-                src={`https://drive.google.com/uc?id=${filteredItems[currentImageIndex]?.id}&export=view`}
+                src={serviceAccountGoogleDriveApi.getHighQualityImageUrl({
+                  id: filteredItems[currentImageIndex]?.id,
+                  name: filteredItems[currentImageIndex]?.categoryLabel,
+                  thumbnailLink: filteredItems[currentImageIndex]?.thumbnailLink || '',
+                  webViewLink: '',
+                  webContentLink: '',
+                  category: filteredItems[currentImageIndex]?.categoryLabel,
+                  folderId: ''
+                })}
                 alt={filteredItems[currentImageIndex]?.categoryLabel}
                 className="modal-image"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  console.log(
-                    "❌ Chyba při načítání modalu:",
-                    filteredItems[currentImageIndex]?.id
-                  );
+                  const currentItem = filteredItems[currentImageIndex];
+                  console.log("❌ Chyba při načítání velkého obrázku:", currentItem?.id);
                   console.log("❌ URL která selhala:", target.src);
 
-                  // Fallback na lh3.googleusercontent.com
-                  if (!target.src.includes("lh3.googleusercontent.com")) {
-                    console.log(
-                      "🔄 Zkouším fallback na lh3.googleusercontent.com pro modal"
-                    );
-                    target.src = `https://lh3.googleusercontent.com/d/${filteredItems[currentImageIndex]?.id}=s1600`;
+                  // Fallback strategie pro velké obrázky
+                  if (target.src.includes('lh3.googleusercontent.com') && target.src.includes('=s1600')) {
+                    // Zkusíme s menší velikostí
+                    console.log("🔄 Zkouším menší velikost =s1200");
+                    target.src = `https://lh3.googleusercontent.com/d/${currentItem?.id}=s1200`;
+                  } else if (target.src.includes('lh3.googleusercontent.com') && target.src.includes('=s1200')) {
+                    // Zkusíme původní drive.google.com URL
+                    console.log("🔄 Zkouším drive.google.com URL");
+                    target.src = `https://drive.google.com/uc?id=${currentItem?.id}&export=view`;
+                  } else if (currentItem?.thumbnailLink && !target.src.includes(currentItem.thumbnailLink)) {
+                    // Zkusíme původní thumbnailLink ve větší velikosti
+                    console.log("🔄 Zkouším thumbnailLink ve velikosti =s1600");
+                    target.src = currentItem.thumbnailLink.replace(/=s\d+/, '=s1600');
                   } else {
-                    console.log(
-                      "🔄 Skrývám modal obrázek, všechny URL selhaly"
-                    );
-                    target.style.display = "none";
+                    // Jako poslední možnost zkusíme menší velikost z lh3
+                    const fallbackUrl = `https://lh3.googleusercontent.com/d/${currentItem?.id}=s800`;
+                    if (target.src !== fallbackUrl) {
+                      console.log("🔄 Zkouším poslední fallback s velikostí =s800");
+                      target.src = fallbackUrl;
+                    } else {
+                      console.log("🔄 Používám placeholder pro modal");
+                      target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'%3E%3Crect width='800' height='600' fill='%23f8f9fa'/%3E%3Ctext x='400' y='300' text-anchor='middle' dy='0.3em' font-family='Arial, sans-serif' font-size='24' fill='%23868e96'%3EObrázek není dostupný%3C/text%3E%3C/svg%3E";
+                    }
                   }
                 }}
               />
